@@ -26,23 +26,21 @@ export function Reveal({ children, className, delay = 0 }: RevealProps) {
 }
 
 type MaskTextProps = {
-  lines: string[];
+  children: ReactNode;
   className?: string;
   lineClassName?: string;
   delay?: number;
-  stagger?: number;
 };
 
 /**
- * Editorial masked-line reveal: each line is clipped by its own
+ * Editorial masked-line reveal: the line is clipped by its own
  * overflow-hidden wrapper and slides up into place.
  */
 export function MaskText({
-  lines,
+  children,
   className,
   lineClassName,
   delay = 0,
-  stagger: step = 0.09,
 }: MaskTextProps) {
   return (
     <motion.span
@@ -50,21 +48,19 @@ export function MaskText({
       initial="hidden"
       whileInView="visible"
       viewport={viewportOnce}
-      variants={stagger(step, delay)}
+      variants={stagger(0.09, delay)}
     >
-      {lines.map((line, i) => (
-        <span key={i} className="block overflow-hidden pb-[0.08em]">
-          <motion.span
-            className={cn("block will-change-transform", lineClassName)}
-            variants={{
-              hidden: { y: "115%" },
-              visible: { y: "0%", transition: { duration: 1.05, ease: EASE } },
-            }}
-          >
-            {line}
-          </motion.span>
-        </span>
-      ))}
+      <span className="block overflow-hidden pb-[0.08em]">
+        <motion.span
+          className={cn("block will-change-transform", lineClassName)}
+          variants={{
+            hidden: { y: "115%" },
+            visible: { y: "0%", transition: { duration: 1.05, ease: EASE } },
+          }}
+        >
+          {children}
+        </motion.span>
+      </span>
     </motion.span>
   );
 }

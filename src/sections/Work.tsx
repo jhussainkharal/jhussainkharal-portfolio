@@ -1,35 +1,92 @@
 import { motion } from "framer-motion";
-import { viewportOnce } from "@/animations/motion";
-import { ProjectChapter } from "@/components/ProjectChapter";
-import { Section } from "@/components/Section";
+import { EASE, viewportOnce } from "@/animations/motion";
+import { MaskText } from "@/components/Reveal";
 import { projects } from "@/data/site";
 
+/**
+ * Selected Works — noir editorial project index.
+ * Large alternating cards, index numerals, cobalt hover states.
+ */
 export function Work() {
   return (
-    <Section id="work" eyebrow="02 / Selected Work">
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <h2 className="font-display text-[clamp(2.4rem,7vw,6.5rem)] leading-[0.92] text-ivory">
-          Selected work,
-          <br />
-          told in chapters.
-        </h2>
+    <section id="work" className="relative bg-noir px-5 py-28 md:px-10 md:py-40">
+      <div className="mx-auto max-w-[1400px]">
         <motion.p
-          className="max-w-sm text-[15px] leading-relaxed text-ash"
+          className="label mb-8 text-cobalt-bright"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={viewportOnce}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.8 }}
         >
-          Four builds across software, institutional web, motion and commerce.
-          Different problems, the same standard of execution.
+          01 — Selected Works
         </motion.p>
-      </div>
+        <h2 className="font-display mb-16 text-[12vw] leading-[0.95] text-white md:mb-24 md:text-[7vw]">
+          <MaskText>SELECTED</MaskText>
+          <MaskText delay={0.08}>
+            <span className="text-stroke">WORKS.</span>
+          </MaskText>
+        </h2>
 
-      <div className="mt-6 divide-y divide-white/5 md:mt-12">
-        {projects.map((project) => (
-          <ProjectChapter key={project.id} project={project} />
-        ))}
+        <div className="space-y-20 md:space-y-32">
+          {projects.map((p, i) => (
+            <motion.article
+              key={p.id}
+              className="group grid gap-8 md:grid-cols-12 md:gap-12"
+              initial={{ opacity: 0, y: 48 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={viewportOnce}
+              transition={{ duration: 1, ease: EASE }}
+            >
+              {/* Image */}
+              <div
+                className={`relative overflow-hidden bg-coal md:col-span-7 ${
+                  i % 2 === 1 ? "md:order-2" : ""
+                }`}
+              >
+                <div className="aspect-[16/10] w-full overflow-hidden">
+                  <img
+                    src={p.image}
+                    alt={p.alt}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                  />
+                </div>
+                <div className="pointer-events-none absolute inset-0 ring-1 ring-white/10 ring-inset" />
+                <span className="font-display absolute top-4 left-5 text-5xl text-white/25 md:text-7xl">
+                  {p.index}
+                </span>
+              </div>
+
+              {/* Copy */}
+              <div
+                className={`flex flex-col justify-center md:col-span-5 ${
+                  i % 2 === 1 ? "md:order-1" : ""
+                }`}
+              >
+                <p className="label mb-4 text-cobalt-bright">{p.category}</p>
+                <h3 className="font-display text-4xl text-white md:text-6xl">
+                  {p.name}
+                </h3>
+                {p.subtitle && (
+                  <p className="mt-2 text-lg text-ash">{p.subtitle}</p>
+                )}
+                <p className="mt-5 leading-relaxed text-dim">{p.description}</p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {p.tech.map((t) => (
+                    <span
+                      key={t}
+                      className="label border border-line px-3 py-1.5 text-ash"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <p className="label mt-6 text-dim/70">{p.status}</p>
+              </div>
+            </motion.article>
+          ))}
+        </div>
       </div>
-    </Section>
+    </section>
   );
 }
