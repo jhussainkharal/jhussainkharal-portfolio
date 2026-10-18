@@ -1,12 +1,8 @@
 import { useEffect, useRef } from "react";
-import chromeImg from "@/assets/portrait-chrome.jpg";
-import noirImg from "@/assets/portrait-noir.jpg";
+import chromeImg from "@/assets/portrait-chrome-sticker.png";
+import noirImg from "@/assets/portrait-noir-sticker.png";
 
 type TrailPoint = { x: number; y: number; t: number };
-
-/** Soft elliptical feather so the photo melts into the black stage. */
-const FEATHER_MASK =
-  "radial-gradient(ellipse 72% 68% at 50% 46%, black 58%, transparent 100%)";
 
 /**
  * Secret Reveal — cursor paints a hidden chrome/cobalt version of the
@@ -176,28 +172,18 @@ export function SecretReveal({ className = "" }: { className?: string }) {
     };
   }, []);
 
-  const featherStyle = {
-    maskImage: FEATHER_MASK,
-    WebkitMaskImage: FEATHER_MASK,
-  };
-
   return (
     <div ref={wrapRef} className={`relative overflow-hidden ${className}`}>
-      {/* Hidden layer — chrome/cobalt version, revealed through the holes */}
+      {/* Hidden layer — chrome/cobalt sticker, revealed through the holes */}
       <img
         src={chromeImg}
         alt=""
         aria-hidden
         className="absolute inset-0 h-full w-full object-cover"
-        style={featherStyle}
         draggable={false}
       />
       {/* Top layer painted on canvas so the cursor can punch through it */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 h-full w-full"
-        style={featherStyle}
-      />
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
       <span className="sr-only">
         Interactive portrait of Rai Jawad Hussain Kharal — move your cursor over
         it to reveal the chrome version
