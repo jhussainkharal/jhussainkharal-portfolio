@@ -1,42 +1,89 @@
 import { useEffect, useRef } from "react";
-import chromeImg from "@/assets/portrait-binary-sticker.png";
-import noirImg from "@/assets/portrait-clean-sticker.png";
+import binaryImg from "@/assets/portrait-binary-sticker.png";
+import cleanImg from "@/assets/portrait-clean-sticker.png";
 
 type TrailPoint = { x: number; y: number; t: number };
 
 /**
- * Secret Reveal — cursor paints a hidden chrome/cobalt version of the
+ * Secret Reveal — cursor paints a hidden binary/digital version of the
  * portrait into view through the top layer, with a soft fading trail.
+ *
+ * Two stacked canvases:
+ *  - bottom: binary portrait clipped to the clean silhouette (static) —
+ *    it can never ghost around the edges in the idle state.
+ *  - top: clean portrait with cursor-punched holes (animated).
+ * The holes only erase the top canvas, revealing the binary beneath.
+ *
  * The trail is interpolated per-frame (no gaps on fast moves) and eased
- * for a buttery feel. Edges are feathered so the photo floats cleanly.
+ * for a buttery feel.
  */
 export function SecretReveal({ className = "" }: { className?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const topRef = useRef<HTMLCanvasElement>(null);
+  const underRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current;
-    const canvas = canvasRef.current;
-    if (!wrap || !canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const topCanvas = topRef.current;
+    const underCanvas = underRef.current;
+    if (!wrap || !topCanvas || !underCanvas) return;
+    const ctx = topCanvas.getContext("2d");
+    const uctx = underCanvas.getContext("2d");
+    if (!ctx || !uctx) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0;
     let running = true;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    const top = new Image();
+    const top = new Image(); // clean portrait (visible)
+    const under = new Image(); // binary portrait (revealed)
     const trail: TrailPoint[] = [];
     const pointer = { x: 0, y: 0, active: false };
     const smooth = { x: 0, y: 0, init: false };
     let interacted = false;
     let sweepTimer: number | null = null;
+    let loaded = 0;
+    let underReady = false;
+
+    /** Draw an image with object-fit: cover semantics onto a context. */
+    const drawCover = (
+      c: CanvasRenderingContext2D,
+      img: HTMLImageElement,
+      W: number,
+      H: number
+    ) => {
+      const ir = img.width / img.height;
+      const cr = W / H;
+      let dw = W;
+      let dh = H;
+      if (ir > cr) dw = H * ir;
+      else dh = W / ir;
+      c.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    };
+
+    /** Paint the static bottom layer: binary clipped to clean silhouette. */
+    const paintUnder = () => {
+      const W = underCanvas.width;
+      const H = underCanvas.height;
+      uctx.clearRect(0, 0, W, H);
+      uctx.globalCompositeOperation = "source-over";
+      drawCover(uctx, under, W, H);
+      uctx.globalCompositeOperation = "destination-in";
+      drawCover(uctx, top, W, H);
+      underReady = true;
+    };
 
     const resize = () => {
       const r = wrap.getBoundingClientRect();
-      canvas.width = Math.max(1, Math.round(r.width * dpr));
-      canvas.height = Math.max(1, Math.round(r.height * dpr));
+      const W = Math.max(1, Math.round(r.width * dpr));
+      const H = Math.max(1, Math.round(r.height * dpr));
+      topCanvas.width = W;
+      topCanvas.height = H;
+      underCanvas.width = W;
+      underCanvas.height = H;
+      underReady = false;
+      if (loaded === 2) paintUnder();
     };
     resize();
     window.addEventListener("resize", resize);
@@ -65,7 +112,10 @@ export function SecretReveal({ className = "" }: { className?: string }) {
       const sweep = () => {
         if (interacted || !running) return;
         const p = (performance.now() - begin) / 2000;
-        if (p >= 1) return;
+        if (p >= 1) {
+          pointer.active = false;
+          return;
+        }
         const r = wrap.getBoundingClientRect();
         pointer.x = r.width * p;
         pointer.y = r.height * 0.42;
@@ -127,18 +177,16 @@ export function SecretReveal({ className = "" }: { className?: string }) {
         if (trail.length > 90) trail.shift();
       }
 
-      // Cover-draw the top (normal) portrait.
-      ctx.globalCompositeOperation = "source-over";
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const ir = top.width / top.height;
-      const cr = canvas.width / canvas.height;
-      let dw = canvas.width;
-      let dh = canvas.height;
-      if (ir > cr) dw = canvas.height * ir;
-      else dh = canvas.width / ir;
-      ctx.drawImage(top, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
+      const W = topCanvas.width;
+      const H = topCanvas.height;
+      ctx.clearRect(0, 0, W, H);
 
-      // Punch soft holes along the trail (newest = strongest).
+      // Clean portrait on the top canvas…
+      ctx.globalCompositeOperation = "source-over";
+      drawCover(ctx, top, W, H);
+
+      // …then punch soft holes through it alone, revealing the binary
+      // canvas stacked underneath.
       ctx.globalCompositeOperation = "destination-out";
       for (let i = trail.length - 1; i >= 0; i--) {
         const p = trail[i];
@@ -155,11 +203,18 @@ export function SecretReveal({ className = "" }: { className?: string }) {
       raf = requestAnimationFrame(tick);
     };
 
-    top.onload = () => {
-      last = performance.now();
-      raf = requestAnimationFrame(tick);
+    const onLoad = () => {
+      loaded += 1;
+      if (loaded === 2) {
+        paintUnder();
+        last = performance.now();
+        raf = requestAnimationFrame(tick);
+      }
     };
-    top.src = noirImg;
+    top.onload = onLoad;
+    under.onload = onLoad;
+    top.src = cleanImg;
+    under.src = binaryImg;
 
     return () => {
       running = false;
@@ -174,16 +229,8 @@ export function SecretReveal({ className = "" }: { className?: string }) {
 
   return (
     <div ref={wrapRef} className={`relative overflow-hidden ${className}`}>
-      {/* Hidden layer — chrome/cobalt sticker, revealed through the holes */}
-      <img
-        src={chromeImg}
-        alt=""
-        aria-hidden
-        className="absolute inset-0 h-full w-full object-cover"
-        draggable={false}
-      />
-      {/* Top layer painted on canvas so the cursor can punch through it */}
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+      <canvas ref={underRef} className="absolute inset-0 h-full w-full" />
+      <canvas ref={topRef} className="absolute inset-0 h-full w-full" />
       <span className="sr-only">
         Interactive portrait of Rai Jawad Hussain Kharal — move your cursor over
         it to reveal the digital version
