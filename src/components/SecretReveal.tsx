@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import chromeImg from "@/assets/portrait-chrome-sticker.png";
-import noirImg from "@/assets/portrait-noir-sticker.png";
+import chromeImg from "@/assets/portrait-binary-sticker.png";
+import noirImg from "@/assets/portrait-clean-sticker.png";
 
 type TrailPoint = { x: number; y: number; t: number };
 
@@ -186,7 +186,7 @@ export function SecretReveal({ className = "" }: { className?: string }) {
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
       <span className="sr-only">
         Interactive portrait of Rai Jawad Hussain Kharal — move your cursor over
-        it to reveal the chrome version
+        it to reveal the digital version
       </span>
     </div>
   );
