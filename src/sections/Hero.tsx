@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { identity } from "@/data/site";
-import { RotatingPortrait } from "@/components/RotatingPortrait";
+import { SecretReveal } from "@/components/SecretReveal";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -60,14 +60,14 @@ export function Hero({ ready }: { ready: boolean }) {
         </svg>
       </motion.div>
 
-      {/* Rotating 3D portrait layered over the panel */}
+      {/* Secret Reveal portrait layered over the panel */}
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         initial={{ opacity: 0, y: 40 }}
         animate={ready ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1.2, ease: EASE, delay: 0.35 }}
       >
-        <RotatingPortrait className="h-[48vh] w-[66vw] max-w-[330px] md:h-[60vh] md:w-[42vh] md:max-w-none" />
+        <SecretReveal className="h-[48vh] w-[64vw] max-w-[330px] md:h-[60vh] md:w-[44vh] md:max-w-none" />
       </motion.div>
 
       {/* Cinematic vignette */}

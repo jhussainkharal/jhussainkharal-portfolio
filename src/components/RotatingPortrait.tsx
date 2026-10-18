@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Scroll/mouse-driven 3D portrait.
- * A pre-rendered 360° frame sequence is scrubbed by the visitor's
- * horizontal mouse position (with idle auto-rotation), giving the
- * "rotating 3D portrait" effect from the reference build.
+ * Cursor-driven 3D portrait.
+ * A pre-rendered 360° frame sequence is scrubbed by the cursor's
+ * horizontal position across the WHOLE viewport (not just the photo),
+ * with idle auto-rotation and touch support for mobile.
  */
 const modules = import.meta.glob<string>("/src/assets/rotation/*.jpg", {
   eager: true,
@@ -20,6 +20,7 @@ export function RotatingPortrait({ className = "" }: { className?: string }) {
   const target = useRef(0.5);
   const current = useRef(0.5);
   const auto = useRef(true);
+  const idleTimer = useRef<number | null>(null);
 
   useEffect(() => {
     // Preload all frames up front for butter-smooth scrubbing.
@@ -27,6 +28,22 @@ export function RotatingPortrait({ className = "" }: { className?: string }) {
       const im = new Image();
       im.src = src;
     });
+
+    const poke = (clientX: number) => {
+      auto.current = false;
+      target.current = Math.min(Math.max(clientX / window.innerWidth, 0), 1);
+      if (idleTimer.current) window.clearTimeout(idleTimer.current);
+      idleTimer.current = window.setTimeout(() => {
+        auto.current = true;
+      }, 2500);
+    };
+
+    const onMouse = (e: MouseEvent) => poke(e.clientX);
+    const onTouch = (e: TouchEvent) => {
+      if (e.touches.length > 0) poke(e.touches[0].clientX);
+    };
+    window.addEventListener("mousemove", onMouse, { passive: true });
+    window.addEventListener("touchmove", onTouch, { passive: true });
 
     let raf = 0;
     let last = performance.now();
@@ -36,8 +53,8 @@ export function RotatingPortrait({ className = "" }: { className?: string }) {
       if (auto.current) {
         target.current = (target.current + dt * 0.045) % 1;
       }
-      // Ease toward target for a weighted, physical feel.
-      current.current += (target.current - current.current) * 0.08;
+      // Snappier easing so the portrait tracks the cursor tightly.
+      current.current += (target.current - current.current) * 0.14;
       const idx =
         Math.floor(current.current * FRAMES.length) % FRAMES.length;
       const el = imgRef.current;
@@ -51,24 +68,16 @@ export function RotatingPortrait({ className = "" }: { className?: string }) {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("mousemove", onMouse);
+      window.removeEventListener("touchmove", onTouch);
+      if (idleTimer.current) window.clearTimeout(idleTimer.current);
+    };
   }, []);
 
   return (
-    <div
-      className={`relative overflow-hidden ${className}`}
-      onMouseMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        auto.current = false;
-        target.current = Math.min(
-          Math.max((e.clientX - r.left) / r.width, 0),
-          1
-        );
-      }}
-      onMouseLeave={() => {
-        auto.current = true;
-      }}
-    >
+    <div className={`relative overflow-hidden ${className}`}>
       {FRAMES.length > 0 && (
         <img
           ref={imgRef}
