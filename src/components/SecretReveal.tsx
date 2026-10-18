@@ -4,10 +4,15 @@ import noirImg from "@/assets/portrait-noir.jpg";
 
 type TrailPoint = { x: number; y: number; t: number };
 
+/** Soft elliptical feather so the photo melts into the black stage. */
+const FEATHER_MASK =
+  "radial-gradient(ellipse 72% 68% at 50% 46%, black 58%, transparent 100%)";
+
 /**
  * Secret Reveal — cursor paints a hidden chrome/cobalt version of the
  * portrait into view through the top layer, with a soft fading trail.
- * Inspired by the Cindy Zhu "secret reveal" portfolio guide.
+ * The trail is interpolated per-frame (no gaps on fast moves) and eased
+ * for a buttery feel. Edges are feathered so the photo floats cleanly.
  */
 export function SecretReveal({ className = "" }: { className?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -23,53 +28,60 @@ export function SecretReveal({ className = "" }: { className?: string }) {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0;
     let running = true;
-    let w = 0;
-    let h = 0;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const top = new Image();
     const trail: TrailPoint[] = [];
+    const pointer = { x: 0, y: 0, active: false };
+    const smooth = { x: 0, y: 0, init: false };
     let interacted = false;
-    let sweepT: number | null = null;
+    let sweepTimer: number | null = null;
 
     const resize = () => {
       const r = wrap.getBoundingClientRect();
-      w = r.width;
-      h = r.height;
-      canvas.width = Math.max(1, Math.round(w * dpr));
-      canvas.height = Math.max(1, Math.round(h * dpr));
+      canvas.width = Math.max(1, Math.round(r.width * dpr));
+      canvas.height = Math.max(1, Math.round(r.height * dpr));
     };
     resize();
     window.addEventListener("resize", resize);
 
-    const pushPoint = (clientX: number, clientY: number) => {
+    const toLocal = (clientX: number, clientY: number) => {
       const r = wrap.getBoundingClientRect();
-      trail.push({
-        x: clientX - r.left,
-        y: clientY - r.top,
-        t: performance.now(),
-      });
-      if (trail.length > 60) trail.shift();
+      return { x: clientX - r.left, y: clientY - r.top };
     };
 
     const onMove = (e: PointerEvent) => {
+      const p = toLocal(e.clientX, e.clientY);
+      pointer.x = p.x;
+      pointer.y = p.y;
+      pointer.active = true;
       interacted = true;
-      pushPoint(e.clientX, e.clientY);
+    };
+    const onLeave = () => {
+      pointer.active = false;
     };
     wrap.addEventListener("pointermove", onMove, { passive: true });
+    wrap.addEventListener("pointerleave", onLeave, { passive: true });
 
     // Intro sweep — teaches the interaction once, then never again.
     if (!reduced) {
-      const start = performance.now() + 600;
-      sweepT = window.setTimeout(function sweep() {
+      const begin = performance.now() + 700;
+      const sweep = () => {
         if (interacted || !running) return;
-        const el = performance.now() - start;
-        const p = el / 1800;
+        const p = (performance.now() - begin) / 2000;
         if (p >= 1) return;
         const r = wrap.getBoundingClientRect();
-        pushPoint(r.left + r.width * p, r.top + r.height * 0.42);
-        sweepT = window.setTimeout(sweep, 16);
-      }, 600);
+        pointer.x = r.width * p;
+        pointer.y = r.height * 0.42;
+        pointer.active = true;
+        if (!smooth.init) {
+          smooth.x = pointer.x;
+          smooth.y = pointer.y;
+          smooth.init = true;
+        }
+        sweepTimer = window.setTimeout(sweep, 16);
+      };
+      sweepTimer = window.setTimeout(sweep, 700);
     }
 
     const visible = new IntersectionObserver(
@@ -87,17 +99,14 @@ export function SecretReveal({ className = "" }: { className?: string }) {
     visible.observe(wrap);
 
     let last = performance.now();
-    const HOLE_R = 110; // px, CSS pixels
-    const FADE_MS = 1400;
+    const HOLE_R = 135; // css px — bigger, softer
+    const FADE_MS = 2200; // longer lingering trail
 
     const drawHole = (x: number, y: number, alpha: number) => {
       const r = HOLE_R * dpr;
-      const g = ctx.createRadialGradient(
-        x * dpr, y * dpr, 0,
-        x * dpr, y * dpr, r
-      );
-      g.addColorStop(0, `rgba(0,0,0,${0.95 * alpha})`);
-      g.addColorStop(0.55, `rgba(0,0,0,${0.55 * alpha})`);
+      const g = ctx.createRadialGradient(x * dpr, y * dpr, 0, x * dpr, y * dpr, r);
+      g.addColorStop(0, `rgba(0,0,0,${0.9 * alpha})`);
+      g.addColorStop(0.45, `rgba(0,0,0,${0.5 * alpha})`);
       g.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = g;
       ctx.beginPath();
@@ -107,9 +116,20 @@ export function SecretReveal({ className = "" }: { className?: string }) {
 
     const tick = (now: number) => {
       if (!running) return;
-      const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      void dt;
+
+      // Ease the render cursor toward the real one — buttery, gap-free.
+      if (!smooth.init) {
+        smooth.x = pointer.x;
+        smooth.y = pointer.y;
+        smooth.init = true;
+      }
+      smooth.x += (pointer.x - smooth.x) * 0.35;
+      smooth.y += (pointer.y - smooth.y) * 0.35;
+      if (pointer.active) {
+        trail.push({ x: smooth.x, y: smooth.y, t: now });
+        if (trail.length > 90) trail.shift();
+      }
 
       // Cover-draw the top (normal) portrait.
       ctx.globalCompositeOperation = "source-over";
@@ -118,24 +138,22 @@ export function SecretReveal({ className = "" }: { className?: string }) {
       const cr = canvas.width / canvas.height;
       let dw = canvas.width;
       let dh = canvas.height;
-      if (ir > cr) {
-        dw = canvas.height * ir;
-      } else {
-        dh = canvas.width / ir;
-      }
+      if (ir > cr) dw = canvas.height * ir;
+      else dh = canvas.width / ir;
       ctx.drawImage(top, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
 
       // Punch soft holes along the trail (newest = strongest).
-      const t = performance.now();
       ctx.globalCompositeOperation = "destination-out";
       for (let i = trail.length - 1; i >= 0; i--) {
         const p = trail[i];
-        const age = t - p.t;
+        const age = now - p.t;
         if (age > FADE_MS) {
           trail.splice(i, 1);
           continue;
         }
-        drawHole(p.x, p.y, 1 - age / FADE_MS);
+        // Ease alpha for a silky fade rather than linear.
+        const k = 1 - age / FADE_MS;
+        drawHole(p.x, p.y, k * k);
       }
 
       raf = requestAnimationFrame(tick);
@@ -153,9 +171,15 @@ export function SecretReveal({ className = "" }: { className?: string }) {
       visible.disconnect();
       window.removeEventListener("resize", resize);
       wrap.removeEventListener("pointermove", onMove);
-      if (sweepT) window.clearTimeout(sweepT);
+      wrap.removeEventListener("pointerleave", onLeave);
+      if (sweepTimer) window.clearTimeout(sweepTimer);
     };
   }, []);
+
+  const featherStyle = {
+    maskImage: FEATHER_MASK,
+    WebkitMaskImage: FEATHER_MASK,
+  };
 
   return (
     <div ref={wrapRef} className={`relative overflow-hidden ${className}`}>
@@ -165,17 +189,14 @@ export function SecretReveal({ className = "" }: { className?: string }) {
         alt=""
         aria-hidden
         className="absolute inset-0 h-full w-full object-cover"
+        style={featherStyle}
         draggable={false}
       />
       {/* Top layer painted on canvas so the cursor can punch through it */}
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-      {/* Cinematic edge blend */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.7) 100%)",
-        }}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 h-full w-full"
+        style={featherStyle}
       />
       <span className="sr-only">
         Interactive portrait of Rai Jawad Hussain Kharal — move your cursor over

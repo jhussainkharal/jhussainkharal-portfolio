@@ -5,69 +5,30 @@ import { SecretReveal } from "@/components/SecretReveal";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 /**
- * Noir hero — full-viewport dark stage.
- * Cobalt vertical panel + rotating 3D portrait + giant cropped ring halo,
- * condensed display type, social links bottom-left, VIEW WORK bottom-right.
- * Directly inspired by the reference reel's hero composition.
+ * Noir hero — clean full-viewport dark stage.
+ * Secret-reveal portrait floating on black with a whisper of cobalt glow.
+ * No panel, no ring — the photo melts into the dark.
  */
 export function Hero({ ready }: { ready: boolean }) {
   return (
     <section id="top" className="relative flex min-h-svh flex-col overflow-hidden bg-noir">
-      {/* Cobalt vertical panel — the reference reel's signature shape */}
+      {/* Whisper of cobalt glow behind the portrait */}
       <motion.div
         aria-hidden
-        className="absolute top-1/2 left-1/2 w-[62vw] max-w-[420px] -translate-x-1/2 -translate-y-1/2 md:w-[30vw]"
-        initial={{ scaleY: 0 }}
-        animate={ready ? { scaleY: 1 } : {}}
-        transition={{ duration: 1.1, ease: EASE }}
-        style={{ transformOrigin: "center" }}
-      >
-        <div className="h-[58vh] w-full bg-cobalt md:h-[68vh]" />
-      </motion.div>
+        className="glow-cobalt pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 opacity-50"
+        initial={{ opacity: 0 }}
+        animate={ready ? { opacity: 0.5 } : {}}
+        transition={{ duration: 1.6, ease: EASE, delay: 0.3 }}
+      />
 
-      {/* Giant thin cobalt ring halo, cropped by the viewport */}
-      <motion.div
-        aria-hidden
-        className="animate-spin-slow pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={ready ? { opacity: 1, scale: 1 } : {}}
-        transition={{ duration: 1.6, ease: EASE, delay: 0.25 }}
-      >
-        <svg
-          width="1200"
-          height="1200"
-          viewBox="0 0 1200 1200"
-          className="h-[130vmin] w-[130vmin]"
-        >
-          <circle
-            cx="600"
-            cy="600"
-            r="585"
-            fill="none"
-            stroke="#2C3480"
-            strokeWidth="3"
-            opacity="0.85"
-          />
-          <circle
-            cx="600"
-            cy="600"
-            r="560"
-            fill="none"
-            stroke="#2C3480"
-            strokeWidth="1"
-            opacity="0.35"
-          />
-        </svg>
-      </motion.div>
-
-      {/* Secret Reveal portrait layered over the panel */}
+      {/* Secret Reveal portrait */}
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         initial={{ opacity: 0, y: 40 }}
         animate={ready ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1.2, ease: EASE, delay: 0.35 }}
       >
-        <SecretReveal className="h-[48vh] w-[64vw] max-w-[330px] md:h-[60vh] md:w-[44vh] md:max-w-none" />
+        <SecretReveal className="h-[52vh] w-[68vw] max-w-[360px] md:h-[66vh] md:w-[48vh] md:max-w-none" />
       </motion.div>
 
       {/* Cinematic vignette */}
