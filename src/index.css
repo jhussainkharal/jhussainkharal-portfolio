@@ -1,47 +1,34 @@
 @import "tailwindcss";
 
 /* ──────────────────────────────────────────────────────────────
-   DESIGN TOKENS — noir / cobalt
-   Black #000000 · White #FFFFFF · Cobalt Blue Deep #2C3480
+   DESIGN TOKENS  —  obsidian / graphite / ivory / electric blue
    ────────────────────────────────────────────────────────────── */
 @theme {
-  --color-noir: #000000;
-  --color-coal: #0a0a0c;
-  --color-panel: #101014;
-  --color-line: #1d1d24;
-  --color-white: #ffffff;
-  --color-ash: #a7adbb;
-  --color-dim: #63676f;
-  --color-cobalt: #2c3480;
-  --color-cobalt-deep: #1c2458;
-  --color-cobalt-bright: #8b9bff;
+  --color-obsidian: #05060a;
+  --color-graphite: #0a0c11;
+  --color-surface: #111419;
+  --color-line: #1d2129;
+  --color-ivory: #f2f0eb;
+  --color-ash: #8c929e;
+  --color-dim: #5b6069;
+  --color-accent: #3d7bff;
+  --color-accent-soft: #86aaff;
 
-  /* Legacy aliases — keep older components working */
-  --color-obsidian: #000000;
-  --color-graphite: #0a0a0c;
-  --color-surface: #101014;
-  --color-ivory: #ffffff;
-  --color-ash: #a7adbb;
-  --color-dim: #63676f;
-  --color-accent: #2c3480;
-  --color-accent-soft: #8b9bff;
-
-  --font-display: "Anton", "Arial Narrow", sans-serif;
+  --font-display: "Instrument Serif", "Times New Roman", serif;
   --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
-/* ───────────────────────── BASE ───────────────────────────── */
+/* ───────────────────────────── BASE ───────────────────────────── */
 html {
-  background: var(--color-noir);
+  background: var(--color-obsidian);
   -webkit-text-size-adjust: 100%;
-  scroll-behavior: auto;
 }
 
 body {
   margin: 0;
-  background: var(--color-noir);
-  color: var(--color-white);
+  background: var(--color-obsidian);
+  color: var(--color-ivory);
   font-family: var(--font-sans);
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
@@ -50,64 +37,85 @@ body {
 }
 
 ::selection {
-  background: var(--color-cobalt);
+  background: color-mix(in srgb, var(--color-accent) 40%, transparent);
   color: #fff;
 }
 
+/* Visible, elegant focus state */
 :focus-visible {
-  outline: 1px solid var(--color-cobalt-bright);
+  outline: 1px solid var(--color-accent);
   outline-offset: 4px;
   border-radius: 2px;
 }
 
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 9px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-noir);
+  background: var(--color-obsidian);
 }
 ::-webkit-scrollbar-thumb {
-  background: #23232c;
+  background: #1b1f27;
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-cobalt);
+  background: #272c36;
 }
 
-/* ───────────────────── TYPOGRAPHY HELPERS ───────────────────── */
+/* ─────────────────────── TYPOGRAPHY HELPERS ─────────────────────── */
 .font-display {
   font-family: var(--font-display);
   font-weight: 400;
-  letter-spacing: 0.01em;
-  line-height: 0.95;
+  letter-spacing: -0.015em;
+}
+
+.wordmark {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.045em;
 }
 
 .label {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
+  color: var(--color-dim);
 }
 
-.text-stroke {
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.22);
-  color: transparent;
+.balance {
+  text-wrap: balance;
 }
 
-/* ─────────────────────── NOIR ATMOSPHERE ─────────────────────── */
-.vignette {
-  background: radial-gradient(
-    ellipse at center,
-    transparent 45%,
-    rgba(0, 0, 0, 0.55) 100%
+/* ───────────────────────── GLASS SYSTEM ───────────────────────── */
+.glass {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.055),
+    rgba(255, 255, 255, 0.018)
   );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    0 20px 60px -30px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-.glow-cobalt {
+.glass-dim {
+  background: rgba(10, 12, 17, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* ─────────────────────── ATMOSPHERIC LIGHT ─────────────────────── */
+.glow-blue {
   background: radial-gradient(
     circle at center,
-    rgba(44, 52, 128, 0.5) 0%,
-    rgba(44, 52, 128, 0.14) 42%,
+    rgba(61, 123, 255, 0.22) 0%,
+    rgba(61, 123, 255, 0.07) 38%,
     transparent 70%
   );
 }
@@ -117,7 +125,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.14),
     transparent
   );
 }
@@ -129,7 +137,7 @@ body {
   inset: -50%;
   pointer-events: none;
   z-index: 60;
-  opacity: 0.05;
+  opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   animation: grain-shift 1.2s steps(3) infinite;
 }
@@ -141,30 +149,13 @@ body {
   100% { transform: translate(0, 0); }
 }
 
-/* Marquee */
-@keyframes marquee-x {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.animate-marquee {
-  animation: marquee-x 28s linear infinite;
-}
-
-/* Slow spin for the hero ring */
-@keyframes spin-slow {
-  to { transform: rotate(360deg); }
-}
-.animate-spin-slow {
-  animation: spin-slow 60s linear infinite;
-}
-
-/* ───────────────────── CUSTOM CURSOR ───────────────────── */
+/* ───────────────────────── CUSTOM CURSOR ───────────────────────── */
 .cursor-hidden,
 .cursor-hidden * {
   cursor: none !important;
 }
 
-/* ─────────────────── MOTION PREFERENCES ─────────────────── */
+/* ─────────────────────── MOTION PREFERENCES ─────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
