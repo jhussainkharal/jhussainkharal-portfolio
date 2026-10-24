@@ -20,8 +20,8 @@ export const identity = {
     "I design websites, build digital experiences, and explore what's possible with AI.",
   email: "g.global.commerce.track@gmail.com",
   instagram: {
-    handle: "jhussainkharal111",
-    url: "https://instagram.com/jhussainkharal111",
+    handle: "jhussainkharal",
+    url: "https://instagram.com/jhussainkharal",
   },
   portrait,
   portraitAlt:
