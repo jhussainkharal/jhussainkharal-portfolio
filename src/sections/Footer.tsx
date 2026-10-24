@@ -26,6 +26,22 @@ export function Footer() {
           >
             Instagram / @{identity.instagram.handle}
           </a>
+          <a
+            href={identity.github.url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-sm text-ash transition-colors hover:text-ivory"
+          >
+            GitHub / @{identity.github.handle}
+          </a>
+          <a
+            href={identity.linkedin.url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-sm text-ash transition-colors hover:text-ivory"
+          >
+            LinkedIn / @{identity.linkedin.handle}
+          </a>
           <p className="label mt-3">
             © {new Date().getFullYear()} {identity.brand}
           </p>

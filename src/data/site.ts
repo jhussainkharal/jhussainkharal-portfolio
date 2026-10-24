@@ -23,6 +23,14 @@ export const identity = {
     handle: "jhussainkharal",
     url: "https://instagram.com/jhussainkharal",
   },
+  github: {
+    handle: "jhussainkharal",
+    url: "https://github.com/jhussainkharal",
+  },
+  linkedin: {
+    handle: "jhussainkharal",
+    url: "https://www.linkedin.com/in/jhussainkharal",
+  },
   portrait,
   portraitAlt:
     "Portrait of Rai Jawad Hussain Kharal seated in low blue light",

@@ -17,6 +17,18 @@ const channels = [
     href: identity.instagram.url,
     external: true,
   },
+  {
+    label: "GITHUB",
+    value: `@${identity.github.handle}`,
+    href: identity.github.url,
+    external: true,
+  },
+  {
+    label: "LINKEDIN",
+    value: `@${identity.linkedin.handle}`,
+    href: identity.linkedin.url,
+    external: true,
+  },
 ];
 
 export function Contact() {
