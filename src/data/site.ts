@@ -15,7 +15,7 @@ export const identity = {
   monogram: "JH",
   fullName: "Rai Jawad Hussain Kharal",
   title: "Web Designer / AI Creative",
-  location: "Hafizabad, Pakistan",
+  location: "Punjab, Pakistan",
   statement:
     "I design websites, build digital experiences, and explore what's possible with AI.",
   email: "g.global.commerce.track@gmail.com",

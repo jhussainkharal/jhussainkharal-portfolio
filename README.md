@@ -1,6 +1,6 @@
 # JHUSSAINKHARAL — Cinematic Portfolio
 
-Personal portfolio for **Rai Jawad Hussain Kharal** (Jhussainkharal) — Web Designer / AI Creative, Hafizabad, Pakistan.
+Personal portfolio for **Rai Jawad Hussain Kharal** (Jhussainkharal) — Web Designer / AI Creative, Punjab, Pakistan.
 
 Built as a single-page cinematic experience: obsidian surfaces, editorial typography, controlled electric-blue atmospheric light, selective glassmorphism and purposeful motion.
 
