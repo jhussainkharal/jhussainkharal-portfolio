@@ -29,6 +29,12 @@ const channels = [
     href: identity.linkedin.url,
     external: true,
   },
+  {
+    label: "YOUTUBE",
+    value: `@${identity.youtube.handle}`,
+    href: identity.youtube.url,
+    external: true,
+  },
 ];
 
 export function Contact() {

@@ -42,6 +42,14 @@ export function Footer() {
           >
             LinkedIn / @{identity.linkedin.handle}
           </a>
+          <a
+            href={identity.youtube.url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-sm text-ash transition-colors hover:text-ivory"
+          >
+            YouTube / @{identity.youtube.handle}
+          </a>
           <p className="label mt-3">
             © {new Date().getFullYear()} {identity.brand}
           </p>
