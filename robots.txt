@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jhussainkharal.github.io/jhussainkharal-portfolio/sitemap.xml
